@@ -1,42 +1,75 @@
 var http = require('http');
-http.createServer(function(request, response) {
+var io = require('socket.io-client')
+var socket = io.connect('http://socket.coincap.io');
+var urlpar = require('url');
 
-        response.writeHead(200, {
-            'Content-Type': 'text/plain'
+http.createServer(function (request, response) {
+
+    response.writeHead(200, {
+        'Content-Type': 'text/plain'
+    });
+    if (request.method == 'POST') {
+
+        var op = "";
+        console.log("POST " + request.pathname);
+        var body = '';
+        request.on('data', function (data) {
+            body += data;
+            console.log("Partial body: " + body);
         });
-        if (request.method == 'POST') {
-
-            var op = "";
-            console.log("POST " + request.url);
-            var body = '';
-            request.on('data', function(data) {
-                body += data;
-                console.log("Partial body: " + body);
+        request.on('end', function () {
+            op = parseInput(body);
+            response.writeHead(200, {
+                'Content-Type': 'text/html'
             });
-            request.on('end', function() {
-                op = parseInput(body);
-                response.writeHead(200, {
-                    'Content-Type': 'text/html'
-                });
-                response.end(op);
-            });
+            response.end(op);
+        });
 
-        } else {
-            console.log("GET " + request.url);
-            var url = request.url;
-            var responseSpeech;
-            if (url == "/temperature") {
-                if (homekitSensors.temperature == 1000) {
-                    responseSpeech = "The temperature sensor is not working. Please check the sensor."
-                } else {
-                    responseSpeech = "Current room temperature is " + homekitSensors.temperature + " degree celsius. Current humidity is " + homekitSensors.temperature
-                }
+    } else {
+        console.log("GET " + request.url);
+        var urldata = urlpar.parse(request.url, true);
+        var responseSpeech;
+        if (urldata.pathname == "/temperature") {
+            if (homekitSensors.temperature == 1000) {
+                responseSpeech = "The temperature sensor is not working. Please check the sensor."
+            } else {
+                responseSpeech = "Current room temperature is " + homekitSensors.temperature + " degree celsius. Current humidity is " + homekitSensors.temperature
             }
-            response.end(responseSpeech);
+ 		response.end(responseSpeech);
         }
+       	console.log(urldata);
+        if (urldata.pathname == "/coin") {
+		http.get('http://api.fixer.io/latest?base=USD&symbols=INR', function (res) {
+                console.log("Got response: " + res.statusCode);
+                res.setEncoding('utf8');
+                res.on("data", function (chunk) {
+                    var INR = JSON.parse(chunk).rates.INR;
+                    var coin = urldata.query["coin"];
 
-    })
+                    var value = "";
+                    value = myMap.get(coin);
+                    console.log(value);
+                    var INRValue = parseFloat(value) * parseFloat(INR)
+                    if (value != undefined && INRValue != NaN) {
+                        responseSpeech = "The value of coin " + coin + " in USD is "
+                        responseSpeech = responseSpeech + value.toFixed(3) + " and in INR is " + INRValue.toFixed(3);
+                    } else {
+                        responseSpeech = "Please try again!!!"
+                    }
+                    response.end(responseSpeech);
+                });
+            }).on('error', function (e) {
+                console.log("Got error: " + e.message);
+            });
+        }
+       
+    }
+
+})
     .listen(8000, '192.168.1.99');
+
+
+
 
 function parseInput(body) {
     var jsonvalue = JSON.parse(body);
@@ -61,7 +94,7 @@ function parseInput(body) {
 
         } else {
             return "color cannot be identified"
-            console.log("Color not found..");
+            
         }
     } else if (jsonvalue.name == "setPower") {
 
@@ -92,10 +125,10 @@ var homekitSensors = {
 var mqtt = require('mqtt');
 var client = mqtt.connect('mqtt://localhost');
 
-client.on('connect', function() {
+client.on('connect', function () {
     client.subscribe('temperature');
 
-    client.on('message', function(topic, message) { //subscribe to topic
+    client.on('message', function (topic, message) { //subscribe to topic
 
         if (topic == "temperature") {
             homekitSensors.temperature = message;
@@ -189,4 +222,17 @@ var colorHSB = {
         }
     }
 }
+
+//Coin API
+var myMap = new Map();
+socket.on('trades', function (tradeMsg) {
+    //console.log(tradeMsg);
+    var coin = tradeMsg.message.coin;
+    var price = tradeMsg.message.msg.price
+
+   // var random = Math.floor(Math.random() * (5 - 1)) + 1
+    myMap.set(coin, price);
+
+})
+
 console.log('Server running at http://192.168.1.99:8000/');
