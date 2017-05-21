@@ -1,13 +1,12 @@
 # AlexaSkill Raspi 3 - ESP8266 - MQTT 
 
-## A dialog interactive alexa skill which interacts with webserver hosted in RPi which the communicates to the ESP8266 using the MQTT. 
-- NeoPixel - Temp & humidity & Cryptocurrency 
+## A dialog interactive alexa skill which interacts with webserver hosted in RPi which the communicates to the ESP8266 using the MQTT ; controls NeoPixel ,gets Temp & humidity and  Cryptocurrency values
 
 This Alexa skill provides:
 
-1. ### An option to change the HSL values of the Neopixel 
-1. ### Provide the temperature, humidity reading from the ESP8266 which is send back to user as speech output .
-1. ### The latest option is to give the cryptocurrency coin values in INR(Indian Rupees).The logic can be changed to fetch values for any currencies.
+1. #### An option to change the HSL values of the Neopixel 
+1. #### Provide the temperature, humidity reading from the ESP8266 which is send back to user as speech output .
+1. #### The latest option is to give the cryptocurrency coin values in INR(Indian Rupees).The logic can be changed to fetch values for any currencies.
 
 
 _My other projects had the HAP NodeJS setup in the Raspberry Pi which communicated to the ESP8266 through MQTT. 
