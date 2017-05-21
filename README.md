@@ -1,6 +1,6 @@
 # AlexaSkill Raspi 3 - ESP8266 - MQTT 
 
-## A dialog interactive alexa skill which interacts with webserver hosted in RPi which the communicates to the ESP8266 using the MQTT ; controls NeoPixel ,gets Temp & humidity and  Cryptocurrency values
+### A dialog interactive alexa skill which interacts with webserver hosted in RPi which the communicates to the ESP8266 using the MQTT ; controls NeoPixel ,gets Temp & humidity and  Cryptocurrency values
 
 This Alexa skill provides:
 
